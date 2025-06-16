@@ -157,3 +157,44 @@ def load_metadata_to_rds():
     except Exception as e:
         logger.error(f"Error loading metadata to RDS: {e}")
         raise
+
+def extract_metadata():
+    try:
+        logger.info("Extracting metadata from RDS...")
+        rds_hook = PostgresHook(postgres_conn_id='rds_postgres')
+        users_df = rds_hook.get_pandas_df("SELECT user_id, user_name, user_age, user_country, created_at FROM users")
+        songs_df = rds_hook.get_pandas_df("SELECT * FROM songs")
+        logger.info("Metadata extracted successfully.")
+        return {
+            'users': users_df.to_dict('records'),
+            'songs': songs_df.to_dict('records')
+        }
+    except Exception as e:
+        logger.error(f"Error extracting metadata: {e}")
+        raise
+
+def extract_streaming():
+    try:
+        logger.info("Extracting streaming data from S3...")
+        s3_hook = S3Hook(aws_conn_id='aws_default')
+        bucket = 'amalitechde-music-streaming-lab'
+        prefix = 'data/streams/'
+        keys = s3_hook.list_keys(bucket_name=bucket, prefix=prefix)
+        streaming_dfs = []
+        new_files_count = 0
+        for key in keys:
+            if key.endswith('.csv') and not is_file_processed(key):
+                file_content = s3_hook.read_key(key, bucket)
+                df = pd.read_csv(StringIO(file_content))
+                streaming_dfs.append(df)
+                mark_file_processed(key)
+                new_files_count += 1
+        if not streaming_dfs:
+            logger.warning("No new streaming data found in S3.")
+            return []
+        streaming_df = pd.concat(streaming_dfs, ignore_index=True)
+        logger.info(f"Streaming data extracted successfully from {new_files_count} new files.")
+        return streaming_df.to_dict('records')
+    except Exception as e:
+        logger.error(f"Error extracting streaming data: {e}")
+        raise
