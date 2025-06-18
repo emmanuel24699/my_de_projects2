@@ -8,6 +8,10 @@ The pipeline uses three AWS Glue jobs to process data through layers: Raw, Curat
 
 ## Architecture
 
+<!-- ![Architecture Diagram](./images/architecture%20diagram.png) -->
+
+<img src="./images/architecture diagram.png" alt="Architecture Diagram" width="1000" height="550"/>
+
 The pipeline processes data in the following stages:
 
 1. **Extract Raw Data**:
