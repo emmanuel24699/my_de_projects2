@@ -33,6 +33,8 @@ The pipeline is orchestrated by an Airflow DAG (`music_streaming_etl.py`) runnin
 
 ## Architecture
 
+<img src='./images/Lab 1 - Music Streaming.drawio.png' width=800>
+
 - **Data Sources**:
   - User and song metadata: S3 (`users.csv`, `songs.csv`), loaded to RDS.
   - Streaming data: S3 (`streams/*.csv`).
